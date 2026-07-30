@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIRA Admin | Customers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0d0d0d; color: #ffffff; }
+        :root { --gold: #B08D57; --bg-card: #1a1a1a; --border-color: #2a2a2a; }
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .sidebar .logo { padding: 0 12px 24px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+        .sidebar .logo h2 { font-family: 'Fraunces', serif; font-size: 24px; color: var(--gold); letter-spacing: 3px; }
+        .sidebar .logo span { color: #a0a0a0; font-size: 12px; display: block; }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+        .sidebar .nav-item:hover { background: #252525; color: #ffffff; }
+        .sidebar .nav-item.active { background: rgba(176, 141, 87, 0.15); color: var(--gold); }
+        .sidebar .nav-item i { font-size: 20px; width: 24px; }
+        .sidebar .nav-item.logout { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px; color: #ef4444; }
+        .sidebar .nav-item.logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+        .main-content { margin-left: 260px; padding: 24px 32px; flex: 1; }
+        
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topbar .page-title h1 { font-size: 24px; font-weight: 600; }
+        .topbar .page-title p { color: #a0a0a0; font-size: 14px; }
+        .topbar .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 6px;
+            background: var(--bg-card);
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+        .topbar .admin-profile .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #0d0d0d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+        .stat-card .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-card .stat-label { color: #a0a0a0; font-size: 13px; }
+
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .table-container .table-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-container .table-header h3 { font-size: 16px; font-weight: 600; }
+        .table-wrapper { overflow-x: auto; padding: 0 24px 24px; }
+        table { width: 100%; border-collapse: collapse; }
+        table thead th {
+            text-align: left;
+            padding: 12px 8px;
+            color: #a0a0a0;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+        }
+        table tbody td { padding: 12px 8px; font-size: 14px; border-bottom: 1px solid rgba(42,42,42,0.5); }
+        table tbody tr:hover { background: #252525; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+    <script src="js/config.js"></script>
+</head>
+<body>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>KAIRA</h2>
+            <span>Admin Panel</span>
+        </div>
+        <nav>
+            <a href="index.html" class="nav-item"><i class="ri-dashboard-line"></i> Dashboard</a>
+            <a href="orders.html" class="nav-item"><i class="ri-shopping-bag-line"></i> Orders</a>
+            <a href="products.html" class="nav-item"><i class="ri-box-3-line"></i> Products</a>
+            <a href="customers.html" class="nav-item active"><i class="ri-user-line"></i> Customers</a>
+            <a href="analytics.html" class="nav-item"><i class="ri-bar-chart-line"></i> Analytics</a>
+            <a href="#" class="nav-item logout" onclick="logout()"><i class="ri-logout-box-line"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <header class="topbar">
+            <div class="page-title">
+                <h1>Customers</h1>
+                <p>Manage your customer base</p>
+            </div>
+            <div class="admin-profile">
+                <div class="avatar">A</div>
+                <span>Admin</span>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCustomers">0</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="newCustomers">0</div>
+                <div class="stat-label">New This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeCustomers">0</div>
+                <div class="stat-label">Active Customers</div>
+            </div>
+        </div>
+
+        <!-- Customers Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>All Customers</h3>
+                <span style="color: #a0a0a0; font-size: 14px;" id="customerCount">0 customers</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <tr><td colspan="5" style="text-align:center;padding:30px;color:#6b6b6b;">Loading customers...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const API_URL = window.KAIRA_API_URL || 'http://localhost:5000/api';
+
+    function getToken() {
+        return localStorage.getItem('adminToken');
+    }
+
+    function logout() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        window.location.href = 'login.html';
+    }
+
+    async function apiCall(endpoint, options = {}) {
+        const token = getToken();
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+            ...options.headers
+        };
+        const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+        return await response.json();
+    }
+
+    async function loadCustomers() {
+        if (!getToken()) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const data = await apiCall('/customers');
+            const customers = data.customers || [];
+            
+            document.getElementById('customerCount').textContent = customers.length + ' customers';
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('newCustomers').textContent = '0';
+            document.getElementById('activeCustomers').textContent = customers.length;
+
+            const tbody = document.getElementById('customersTableBody');
+            if (customers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#6b6b6b;">No customers found</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = customers.map(c => `
+                <tr>
+                    <td>${c.name || 'N/A'}</td>
+                    <td>${c.email || 'N/A'}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-'}</td>
+                    <td><span class="status-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;padding:4px 12px;border-radius:20px;font-size:12px;">Active</span></td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading customers:', error);
+            document.getElementById('customersTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#ef4444;">Error loading customers</td></tr>`;
+        }
+    }
+
+    loadCustomers();
+</script>
+</body>
+</html>
