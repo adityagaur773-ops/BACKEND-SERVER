@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIRA Admin | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0d0d0d;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        :root { --gold: #B08D57; --bg-card: #1a1a1a; --border-color: #2a2a2a; }
+        .login-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 48px 40px;
+            max-width: 420px;
+            width: 100%;
+            margin: 20px;
+        }
+        .login-container .logo { text-align: center; margin-bottom: 32px; }
+        .login-container .logo h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 32px;
+            color: var(--gold);
+            letter-spacing: 4px;
+        }
+        .login-container .logo p { color: #a0a0a0; font-size: 14px; margin-top: 4px; }
+        .login-container .form-group { margin-bottom: 20px; }
+        .login-container label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #a0a0a0;
+            margin-bottom: 6px;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0d0d0d;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .login-container input:focus { outline: none; border-color: var(--gold); }
+        .login-container .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--gold);
+            color: #0d0d0d;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .login-container .login-btn:hover { background: #c9a55e; transform: translateY(-1px); }
+        .login-container .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .login-container .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .login-container .error-message.show { display: block; }
+        .login-container .demo-credentials {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(176, 141, 87, 0.08);
+            border: 1px solid rgba(176, 141, 87, 0.2);
+            border-radius: 8px;
+        }
+        .login-container .demo-credentials p { color: #a0a0a0; font-size: 13px; margin-bottom: 6px; }
+        .login-container .demo-credentials code {
+            display: block;
+            background: #0d0d0d;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #eab308;
+            font-family: 'Courier New', monospace;
+        }
+        .login-container .version {
+            text-align: center;
+            color: #555;
+            font-size: 11px;
+            margin-top: 16px;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #0d0d0d;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="logo">
+            <h1>KAIRA</h1>
+            <p>Admin Panel Login</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="admin@kaira.com" value="admin@kaira.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" value="Admin@123" required>
+            </div>
+            <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+        </form>
+
+        <div class="demo-credentials">
+            <p>🔑 Demo Credentials:</p>
+            <code>admin@kaira.com / Admin@123</code>
+        </div>
+
+        <div class="version" id="versionInfo">Loading...</div>
+    </div>
+
+    <script>
+        // ✅ USE YOUR RENDER URL
+        const API_URL = 'https://backend-synda.onrender.com/api';
+        
+        console.log('🔐 Login Page Loading...');
+        console.log(`📡 Using API: ${API_URL}`);
+
+        document.getElementById('versionInfo').textContent = `API: ${API_URL}`;
+
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            fetch(`${API_URL}/auth/verify-token`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'index.html';
+                } else {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+            });
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter both email and password';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
+            loginBtn.disabled = true;
+            errorEl.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminUser', JSON.stringify(data.user));
+                    window.location.href = 'index.html';
+                } else {
+                    errorEl.textContent = data.message || 'Invalid credentials';
+                    errorEl.classList.add('show');
+                    loginBtn.innerHTML = 'Sign In';
+                    loginBtn.disabled = false;
+                }
+            } catch (error) {
+                errorEl.textContent = 'Network error. Please check if server is running.';
+                errorEl.classList.add('show');
+                loginBtn.innerHTML = 'Sign In';
+                loginBtn.disabled = false;
+            }
+        }
+
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
